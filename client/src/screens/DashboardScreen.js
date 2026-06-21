@@ -1,0 +1,265 @@
+// src/screens/DashboardScreen.js
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  Pressable,
+  RefreshControl,
+  Alert,
+} from 'react-native';
+import { colors, typography, spacing, radius } from '../theme';
+import Card from '../components/Card';
+import Button from '../components/Button';
+import StatusStamp from '../components/StatusStamp';
+import EmptyState from '../components/EmptyState';
+import { useProfile } from '../context/ProfileContext';
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function daysUntil(iso) {
+  const today = new Date();
+  const target = new Date(iso);
+  const diff = Math.ceil((target - today) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+export default function DashboardScreen({ navigation }) {
+  const {
+    profile,
+    calendar,
+    calendarFromCache,
+    refreshCalendar,
+    triggerReminder,
+    switchToNourrisson,
+  } = useProfile();
+
+  const [refreshing, setRefreshing] = useState(false);
+  const [reminderSentFor, setReminderSentFor] = useState(null);
+
+  useEffect(() => {
+    refreshCalendar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refreshCalendar();
+    setRefreshing(false);
+  }, [refreshCalendar]);
+
+  const upcoming = calendar.filter((e) => e.statut === 'a_venir');
+  const nextEvent = upcoming[0];
+  const mode = profile?.mode;
+
+  async function handleTriggerReminder() {
+    if (!nextEvent) return;
+    const res = await triggerReminder(nextEvent.id);
+    if (res.success) {
+      setReminderSentFor(nextEvent.id);
+      Alert.alert('Rappel envoyé', `Notification déclenchée pour : ${nextEvent.label}`);
+    }
+  }
+
+  function handleSwitchMode() {
+    Alert.alert(
+      'Confirmer la naissance',
+      'Veux-tu basculer ton profil en Mode Nourrisson ? Le calendrier sera mis à jour avec le PEV.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Confirmer',
+          onPress: async () => {
+            const today = new Date().toISOString().split('T')[0];
+            await switchToNourrisson(today);
+          },
+        },
+      ]
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.teal} />}
+      >
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={typography.label}>
+              {mode === 'grossesse' ? 'Mode Grossesse' : 'Mode Nourrisson'}
+            </Text>
+            <Text style={[typography.h1, { marginTop: 2 }]}>Bonjour 👋</Text>
+          </View>
+          <View style={styles.modeChip}>
+            <Text style={styles.modeChipText}>{mode === 'grossesse' ? '🤰' : '👶'}</Text>
+          </View>
+        </View>
+
+        {calendarFromCache && (
+          <View style={styles.cacheNotice}>
+            <Text style={styles.cacheNoticeText}>
+              Pas de connexion — dernière mise à jour connue affichée.
+            </Text>
+          </View>
+        )}
+
+        {/* Carte prochain rendez-vous */}
+        <Card raised style={styles.heroCard}>
+          {nextEvent ? (
+            <>
+              <Text style={styles.heroLabel}>PROCHAIN RENDEZ-VOUS</Text>
+              <Text style={styles.heroTitle}>{nextEvent.label}</Text>
+              <Text style={styles.heroDate}>{formatDate(nextEvent.date_prevue)}</Text>
+              <Text style={styles.heroCountdown}>
+                {daysUntil(nextEvent.date_prevue) >= 0
+                  ? `Dans ${daysUntil(nextEvent.date_prevue)} jour(s)`
+                  : 'Échéance dépassée'}
+              </Text>
+              <View style={{ marginTop: spacing.md }}>
+                <Button
+                  label={reminderSentFor === nextEvent.id ? 'Rappel envoyé ✓' : 'Déclencher le rappel'}
+                  onPress={handleTriggerReminder}
+                  variant="secondary"
+                  disabled={reminderSentFor === nextEvent.id}
+                />
+              </View>
+            </>
+          ) : (
+            <EmptyState
+              emoji="🗓️"
+              title="Aucune échéance à venir"
+              message="Ton calendrier est à jour, rien à signaler pour le moment."
+            />
+          )}
+        </Card>
+
+        {/* Accès rapides */}
+        <Text style={[typography.h3, styles.sectionTitle]}>Accès rapide</Text>
+        <View style={styles.quickRow}>
+          <QuickAction
+            emoji="💬"
+            label="Chatbot"
+            onPress={() => navigation.navigate('Chatbot')}
+          />
+          <QuickAction
+            emoji="📖"
+            label="Conseils"
+            onPress={() => navigation.navigate('Conseils')}
+          />
+          <QuickAction
+            emoji="📟"
+            label="Sans réseau"
+            onPress={() => navigation.navigate('USSD')}
+          />
+        </View>
+
+        {/* Calendrier complet */}
+        <Text style={[typography.h3, styles.sectionTitle]}>
+          {mode === 'grossesse' ? 'Calendrier CPN' : 'Calendrier PEV'}
+        </Text>
+
+        {calendar.length === 0 ? (
+          <Card>
+            <EmptyState
+              emoji="📋"
+              title="Calendrier non généré"
+              message="Reviens dans un instant, ton calendrier est en cours de préparation."
+            />
+          </Card>
+        ) : (
+          calendar.map((event) => (
+            <Card key={event.id} style={styles.eventCard}>
+              <View style={styles.eventRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={typography.bodyStrong}>{event.label}</Text>
+                  <Text style={[typography.caption, { marginTop: 2 }]}>{formatDate(event.date_prevue)}</Text>
+                </View>
+                <StatusStamp status={event.statut} />
+              </View>
+            </Card>
+          ))
+        )}
+
+        {mode === 'grossesse' && (
+          <Pressable onPress={handleSwitchMode} style={styles.switchModeLink}>
+            <Text style={styles.switchModeText}>Le bébé est arrivé ? Basculer en Mode Nourrisson →</Text>
+          </Pressable>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+function QuickAction({ emoji, label, onPress }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.quickAction, pressed && { opacity: 0.8 }]}>
+      <View style={styles.quickIconWrap}>
+        <Text style={styles.quickEmoji}>{emoji}</Text>
+      </View>
+      <Text style={styles.quickLabel}>{label}</Text>
+    </Pressable>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: colors.paper },
+  scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.md,
+  },
+  modeChip: {
+    width: 44,
+    height: 44,
+    borderRadius: 44,
+    backgroundColor: colors.cardTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modeChipText: { fontSize: 20 },
+  cacheNotice: {
+    backgroundColor: colors.warningBg,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  cacheNoticeText: { color: colors.coralDark, fontSize: 13, fontWeight: '600' },
+  heroCard: {
+    backgroundColor: colors.tealDark,
+    borderColor: colors.tealDeep,
+    marginBottom: spacing.lg,
+  },
+  heroLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '800', letterSpacing: 0.6 },
+  heroTitle: { color: colors.white, fontSize: 21, fontWeight: '800', marginTop: 6 },
+  heroDate: { color: 'rgba(255,255,255,0.92)', fontSize: 15, marginTop: 4, fontWeight: '600' },
+  heroCountdown: { color: colors.coral, fontSize: 13, marginTop: 6, fontWeight: '700' },
+  sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
+  quickRow: { flexDirection: 'row', gap: spacing.sm },
+  quickAction: { flex: 1, alignItems: 'center' },
+  quickIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.lg,
+    backgroundColor: colors.white,
+    borderWidth: 1.5,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  quickEmoji: { fontSize: 22 },
+  quickLabel: { ...typography.caption, fontWeight: '600', color: colors.ink },
+  eventCard: { marginBottom: spacing.sm },
+  eventRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  switchModeLink: { marginTop: spacing.lg, alignItems: 'center', paddingVertical: spacing.sm },
+  switchModeText: { color: colors.teal, fontWeight: '700', fontSize: 13.5 },
+});
