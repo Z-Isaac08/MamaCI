@@ -1,60 +1,51 @@
-# MamaCi — Application mobile (React Native / Expo)
+# 📱 MamaCi - Application Mobile (Frontend)
 
-Implémentation du parcours complet décrit dans la doc Frontend de l'équipe :
-Bienvenue → Onboarding → Tableau de bord → Chatbot → Conseils → Simulation USSD.
+Ceci est l'application mobile accompagnant les mamans ivoiriennes. Elle a été construite avec React Native et Expo pour pouvoir tourner de manière fluide sur Android, iOS, et même sur le Web.
 
-## Démarrer en local
+## ✨ Fonctionnalités UI/UX
 
-```bash
-npm install
-npx expo start
+- **Design Système** : Thème personnalisé avec couleurs apaisantes (Teal, Coral) et icônes minimalistes (`Feather`).
+- **Accessibilité (TTS/STT)** : 
+  - Bouton `Écouter` sur le Chatbot et les Conseils pour utiliser la synthèse vocale (`expo-speech`).
+  - Bouton `Micro` pour simuler la saisie vocale pour les femmes peu alphabétisées.
+- **USSD Interactif** : L'écran *Sans réseau* (`UssdScreen`) simule fidèlement un vieux téléphone portable. L'utilisateur utilise le clavier T9, compose `*134#`, et navigue dans les menus qui appellent le vrai Backend.
+
+## 📁 Structure du code
+
+```text
+client/
+├── src/
+│   ├── api/                # Configuration Axios (client.js) et mock (mockServer.js)
+│   ├── components/         # Composants réutilisables (Card, ChatBubble, EmptyState)
+│   ├── context/            # Gestion globale de l'état (ProfileContext)
+│   ├── navigation/         # Barre de navigation en bas (Bottom Tabs)
+│   ├── screens/            # Tous les écrans de l'app (Dashboard, Chatbot, USSD, etc.)
+│   └── theme.js            # Design Tokens (couleurs, espacements, typographie)
 ```
 
-Scanner le QR code avec l'app **Expo Go** sur un téléphone réel (le plus fiable pour la démo), ou taper `i` / `a` dans le terminal pour un simulateur iOS/Android si configuré.
+## 🚀 Démarrage
 
-## Données : mock activé par défaut
+1. Installer les dépendances :
+   ```bash
+   npm install
+   ```
 
-L'app tourne actuellement avec un **serveur mock en mémoire** (`src/api/mockServer.js`), qui reproduit fidèlement les endpoints et le format de réponse (`{success, data}` / `{success, error}`) du backend Express documenté. Ça permet de travailler et de répéter le pitch même si le backend n'est pas encore en ligne.
+2. Configuration Réseau (Très important) :
+   Ouvrez le fichier `src/api/client.js`. Modifiez la constante `BASE_URL` pour qu'elle corresponde à l'adresse IP de votre serveur Backend ou à votre lien Localtunnel/Ngrok.
+   ```javascript
+   const BASE_URL = 'http://192.168.1.X:3000'; // Changez l'IP ici
+   ```
 
-### Brancher le vrai backend
+3. Lancer l'application :
+   ```bash
+   npm start
+   # ou
+   npx expo start -c  # Pour vider le cache en cas de problème
+   ```
 
-Dans `src/api/client.js` :
+## 📦 Librairies Principales
 
-```js
-export const USE_MOCK = false; // était true
-const BASE_URL = 'http://<ip-du-backend>:3000'; // remplacer
-```
-
-Aucun autre fichier à toucher : tous les écrans passent par `apiGet` / `apiPost` / `apiPatch`, qui basculent automatiquement entre mock et réseau réel. Les routes appelées (`/api/profiles`, `/api/profiles/:id/calendar`, `/api/events/:id/trigger-reminder`, `/api/chatbot/message`, `/api/advice`, etc.) correspondent exactement à la doc Backend §3.
-
-## Structure du projet
-
-Reprend exactement l'arborescence définie dans la doc Frontend §1.3 :
-
-```
-src/
-├── screens/      un fichier par écran
-├── components/   Button, Card, TextField, StatusStamp, ChatBubble...
-├── navigation/    Stack (Bienvenue→Onboarding) puis Tabs (Tableau/Chatbot/Conseils)
-├── context/      ProfileContext — state global profil + calendrier
-├── api/          client.js (point d'entrée unique) + mockServer.js
-├── theme/        couleurs, typographie, espacements
-└── data/         calendrier CPN/PEV, fiches conseils, règles chatbot — contenu statique embarqué
-```
-
-## Points d'attention avant la démo
-
-Repris de la checklist de la doc Frontend §7 — à vérifier avant mardi/mercredi :
-
-- [ ] Profil de démo créé à l'avance (éviter la saisie en direct)
-- [ ] Testé sur un device réel, idéalement celui du jour J
-- [ ] Testé en connexion dégradée (Wi-Fi coupé) — le mock fonctionne 100% hors-ligne par nature
-- [ ] Notification de rappel déclenchée et vérifiée en live (bouton sur le Tableau de bord)
-- [ ] Écran Simulation USSD testé indépendamment (100% local, aucun appel réseau)
-- [ ] Si le vrai backend est branché : plan B prêt si le chatbot externe ne répond pas
-
-## Notes de conception
-
-- **Calendrier CPN/PEV simplifié** (`src/data/calendarRules.js`) : 5 échéances clés par mode, à valider avec une source médicale officielle ivoirienne avant toute utilisation au-delà du MVP (voir cahier des charges).
-- **Chatbot mock** (`src/data/chatbotRules.js`) : reproduit la politique du futur backend (détection de signaux d'alerte en priorité, honnêteté si hors périmètre) en attendant le relais vers le vrai modèle de langage.
-- **Identité visuelle** : la palette teal/corail de l'équipe est conservée telle quelle ; la signature du design est le badge de statut traité comme un tampon de carnet de santé plutôt qu'un chip plat — un clin d'œil discret à l'objet (le carnet papier) que MamaCi remplace.
+- `@react-navigation/bottom-tabs` & `@react-navigation/native` : Routage.
+- `axios` : Communication HTTP avec le backend.
+- `expo-speech` : Synthèse vocale intégrée hors-ligne.
+- `@expo/vector-icons` : Bibliothèque d'icônes standardisées.
