@@ -13,7 +13,7 @@ import * as mock from "./mockServer";
 
 // --- Bascule mock / backend réel -------------------------------------
 export const USE_MOCK = false;
-const BASE_URL = "http://localhost:3000"; // à remplacer par l'IP locale du backend
+const BASE_URL = "https://resume-collapse-body.ngrok-free.dev"; // à remplacer par l'IP locale du backend
 // -----------------------------------------------------------------------
 
 const http = axios.create({

@@ -5,8 +5,11 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/logo_mama.png",
     "splash": {
-      "backgroundColor": "#0F766E"
+      "image": "./assets/logo_mama.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFBF5"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
@@ -17,7 +20,8 @@
     "android": {
       "package": "ci.mamaci.app",
       "adaptiveIcon": {
-        "backgroundColor": "#0F766E"
+        "foregroundImage": "./assets/logo_mama.png",
+        "backgroundColor": "#FFFBF5"
       }
     },
     "plugins": [

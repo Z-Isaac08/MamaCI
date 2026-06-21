@@ -13,7 +13,7 @@ export default function WelcomeScreen({ navigation }) {
         <View style={styles.markWrap}>
           <View style={styles.markCircleOuter}>
             <View style={styles.markCircleInner}>
-              <Text style={styles.markGlyph}>+</Text>
+              <Image source={require('../../assets/logo_mama.png')} style={styles.logoImage} resizeMode="contain" />
             </View>
           </View>
         </View>
@@ -78,15 +78,13 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 72,
-    backgroundColor: colors.coral,
+    backgroundColor: colors.white,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  markGlyph: {
-    color: colors.white,
-    fontSize: 34,
-    fontWeight: '800',
-    marginTop: -2,
+  logoImage: {
+    width: 48,
+    height: 48,
   },
   wordmark: {
     fontSize: 38,

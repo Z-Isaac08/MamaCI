@@ -1,5 +1,5 @@
 // src/screens/DashboardScreen.js
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,20 +9,21 @@ import {
   Pressable,
   RefreshControl,
   Alert,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { colors, typography, spacing, radius } from '../theme';
-import Card from '../components/Card';
-import Button from '../components/Button';
-import StatusStamp from '../components/StatusStamp';
-import EmptyState from '../components/EmptyState';
-import { useProfile } from '../context/ProfileContext';
+  Image,
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { colors, typography, spacing, radius } from "../theme";
+import Card from "../components/Card";
+import Button from "../components/Button";
+import StatusStamp from "../components/StatusStamp";
+import EmptyState from "../components/EmptyState";
+import { useProfile } from "../context/ProfileContext";
 
 function formatDate(iso) {
-  if (!iso) return '';
+  if (!iso) return "";
   const d = new Date(iso);
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = d.getFullYear();
   return `${day}-${month}-${year}`;
 }
@@ -58,33 +59,37 @@ export default function DashboardScreen({ navigation }) {
     setRefreshing(false);
   }, [refreshCalendar]);
 
-  const upcoming = calendar.filter((e) => e.statut === 'a_venir');
+  const upcoming = calendar.filter((e) => e.statut === "a_venir");
   const nextEvent = upcoming[0];
   const mode = profile?.mode;
+  const prenom = profile?.nom ? profile.nom.split(" ")[0] : "";
 
   async function handleTriggerReminder() {
     if (!nextEvent) return;
     const res = await triggerReminder(nextEvent.id);
     if (res.success) {
       setReminderSentFor(nextEvent.id);
-      Alert.alert('Rappel envoyé', `Notification déclenchée pour : ${nextEvent.label}`);
+      Alert.alert(
+        "Rappel envoyé",
+        `Notification déclenchée pour : ${nextEvent.label}`,
+      );
     }
   }
 
   function handleSwitchMode() {
     Alert.alert(
-      'Confirmer la naissance',
-      'Veux-tu basculer ton profil en Mode Nourrisson ? Le calendrier sera mis à jour avec le PEV.',
+      "Confirmer la naissance",
+      "Veux-tu basculer ton profil en Mode Nourrisson ? Le calendrier sera mis à jour avec le PEV.",
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: "Annuler", style: "cancel" },
         {
-          text: 'Confirmer',
+          text: "Confirmer",
           onPress: async () => {
-            const today = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split("T")[0];
             await switchToNourrisson(today);
           },
         },
-      ]
+      ],
     );
   }
 
@@ -92,17 +97,34 @@ export default function DashboardScreen({ navigation }) {
     <SafeAreaView style={styles.safe}>
       <ScrollView
         contentContainerStyle={styles.scroll}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.teal} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.teal}
+          />
+        }
       >
         <View style={styles.headerRow}>
           <View>
-            <Text style={typography.label}>
-              {mode === 'grossesse' ? 'Mode Grossesse' : 'Mode Nourrisson'}
-            </Text>
-            <Text style={[typography.h1, { marginTop: 2 }]}>Bonjour 👋</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
+              <Image 
+                source={require('../../assets/logo_mama.png')} 
+                style={{ width: 20, height: 20, marginRight: 6 }} 
+                resizeMode="contain" 
+              />
+              <Text style={typography.label}>
+                {mode === "grossesse" ? "Mode Grossesse" : "Mode Nourrisson"}
+              </Text>
+            </View>
+            <Text style={[typography.h1, { marginTop: 2 }]}>Bienvenue {prenom}</Text>
           </View>
           <View style={styles.modeChip}>
-            <Feather name={mode === 'grossesse' ? 'user' : 'smile'} size={24} color={colors.tealDark} />
+            <Feather
+              name={mode === "grossesse" ? "user" : "smile"}
+              size={24}
+              color={colors.tealDark}
+            />
           </View>
         </View>
 
@@ -120,15 +142,21 @@ export default function DashboardScreen({ navigation }) {
             <>
               <Text style={styles.heroLabel}>PROCHAIN RENDEZ-VOUS</Text>
               <Text style={styles.heroTitle}>{nextEvent.label}</Text>
-              <Text style={styles.heroDate}>{formatDate(nextEvent.date_prevue)}</Text>
+              <Text style={styles.heroDate}>
+                {formatDate(nextEvent.date_prevue)}
+              </Text>
               <Text style={styles.heroCountdown}>
                 {daysUntil(nextEvent.date_prevue) >= 0
                   ? `Dans ${daysUntil(nextEvent.date_prevue)} jour(s)`
-                  : 'Échéance dépassée'}
+                  : "Échéance dépassée"}
               </Text>
               <View style={{ marginTop: spacing.md }}>
                 <Button
-                  label={reminderSentFor === nextEvent.id ? 'Rappel envoyé ✓' : 'Déclencher le rappel'}
+                  label={
+                    reminderSentFor === nextEvent.id
+                      ? "Rappel envoyé ✓"
+                      : "Déclencher le rappel"
+                  }
                   onPress={handleTriggerReminder}
                   variant="secondary"
                   disabled={reminderSentFor === nextEvent.id}
@@ -150,28 +178,28 @@ export default function DashboardScreen({ navigation }) {
           <QuickAction
             icon="message-circle"
             label="Chatbot"
-            onPress={() => navigation.navigate('Chatbot')}
+            onPress={() => navigation.navigate("Chatbot")}
           />
           <QuickAction
             icon="book-open"
             label="Conseils"
-            onPress={() => navigation.navigate('Conseils')}
+            onPress={() => navigation.navigate("Conseils")}
           />
           <QuickAction
             icon="bell"
             label="Rappels"
-            onPress={() => navigation.navigate('Reminders')}
+            onPress={() => navigation.navigate("Reminders")}
           />
           <QuickAction
             icon="smartphone"
             label="Sans réseau"
-            onPress={() => navigation.navigate('USSD')}
+            onPress={() => navigation.navigate("USSD")}
           />
         </View>
 
         {/* Calendrier complet */}
         <Text style={[typography.h3, styles.sectionTitle]}>
-          {mode === 'grossesse' ? 'Calendrier CPN' : 'Calendrier PEV'}
+          {mode === "grossesse" ? "Calendrier CPN" : "Calendrier PEV"}
         </Text>
 
         {calendar.length === 0 ? (
@@ -188,7 +216,9 @@ export default function DashboardScreen({ navigation }) {
               <View style={styles.eventRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={typography.bodyStrong}>{event.label}</Text>
-                  <Text style={[typography.caption, { marginTop: 2 }]}>{formatDate(event.date_prevue)}</Text>
+                  <Text style={[typography.caption, { marginTop: 2 }]}>
+                    {formatDate(event.date_prevue)}
+                  </Text>
                 </View>
                 <StatusStamp status={event.statut} />
               </View>
@@ -196,9 +226,11 @@ export default function DashboardScreen({ navigation }) {
           ))
         )}
 
-        {mode === 'grossesse' && (
+        {mode === "grossesse" && (
           <Pressable onPress={handleSwitchMode} style={styles.switchModeLink}>
-            <Text style={styles.switchModeText}>Le bébé est arrivé ? Basculer en Mode Nourrisson →</Text>
+            <Text style={styles.switchModeText}>
+              Le bébé est arrivé ? Basculer en Mode Nourrisson →
+            </Text>
           </Pressable>
         )}
       </ScrollView>
@@ -221,9 +253,9 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
   headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: spacing.md,
   },
   modeChip: {
@@ -231,8 +263,8 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 44,
     backgroundColor: colors.cardTint,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   modeChipText: { fontSize: 20 },
   cacheNotice: {
@@ -241,19 +273,39 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     marginBottom: spacing.md,
   },
-  cacheNoticeText: { color: colors.coralDark, fontSize: 13, fontWeight: '600' },
+  cacheNoticeText: { color: colors.coralDark, fontSize: 13, fontWeight: "600" },
   heroCard: {
     backgroundColor: colors.tealDark,
     borderColor: colors.tealDeep,
     marginBottom: spacing.lg,
   },
-  heroLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '800', letterSpacing: 0.6 },
-  heroTitle: { color: colors.white, fontSize: 21, fontWeight: '800', marginTop: 6 },
-  heroDate: { color: 'rgba(255,255,255,0.92)', fontSize: 15, marginTop: 4, fontWeight: '600' },
-  heroCountdown: { color: colors.coral, fontSize: 13, marginTop: 6, fontWeight: '700' },
+  heroLabel: {
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  heroTitle: {
+    color: colors.white,
+    fontSize: 21,
+    fontWeight: "800",
+    marginTop: 6,
+  },
+  heroDate: {
+    color: "rgba(255,255,255,0.92)",
+    fontSize: 15,
+    marginTop: 4,
+    fontWeight: "600",
+  },
+  heroCountdown: {
+    color: colors.coral,
+    fontSize: 13,
+    marginTop: 6,
+    fontWeight: "700",
+  },
   sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
-  quickRow: { flexDirection: 'row', gap: spacing.sm },
-  quickAction: { flex: 1, alignItems: 'center' },
+  quickRow: { flexDirection: "row", gap: spacing.sm },
+  quickAction: { flex: 1, alignItems: "center" },
   quickIconWrap: {
     width: 56,
     height: 56,
@@ -261,14 +313,22 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1.5,
     borderColor: colors.line,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 6,
   },
   quickEmoji: { fontSize: 22 },
-  quickLabel: { ...typography.caption, fontWeight: '600', color: colors.ink },
+  quickLabel: { ...typography.caption, fontWeight: "600", color: colors.ink },
   eventCard: { marginBottom: spacing.sm },
-  eventRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  switchModeLink: { marginTop: spacing.lg, alignItems: 'center', paddingVertical: spacing.sm },
-  switchModeText: { color: colors.teal, fontWeight: '700', fontSize: 13.5 },
+  eventRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  switchModeLink: {
+    marginTop: spacing.lg,
+    alignItems: "center",
+    paddingVertical: spacing.sm,
+  },
+  switchModeText: { color: colors.teal, fontWeight: "700", fontSize: 13.5 },
 });
