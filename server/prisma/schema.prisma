@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Profile {
+  id             String   @id @default(uuid())
+  cmu_id         String   @unique
+  mode           String // "grossesse" or "nourrisson"
+  date_reference DateTime
+  created_at     DateTime @default(now())
+
+  // Relations
+  events CalendarEvent[]
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  type        String // e.g. CPN_1, PEV_BCG
+  date_prevue DateTime
+  statut      String   @default("a_venir") // "a_venir", "fait", "manque"
+
+  // Relations
+  profile_id String
+  profile    Profile    @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+  reminders  Reminder[]
+}
+
+model Reminder {
+  id        String  @id @default(uuid())
+  canal     String  @default("app")
+  declenche Boolean @default(false)
+
+  // Relations
+  event_id String
+  event    CalendarEvent @relation(fields: [event_id], references: [id], onDelete: Cascade)
+}
