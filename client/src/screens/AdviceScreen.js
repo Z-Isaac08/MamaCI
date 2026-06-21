@@ -1,6 +1,7 @@
 // src/screens/AdviceScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, Pressable, Modal } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '../theme';
 import Card from '../components/Card';
 import { useProfile } from '../context/ProfileContext';
@@ -15,7 +16,7 @@ const TAG_COLORS = {
   Alerte: colors.danger,
 };
 
-export default function AdviceScreen() {
+export default function AdviceScreen({ navigation }) {
   const { profile } = useProfile();
   const mode = profile?.mode || 'grossesse';
   const [fiches, setFiches] = useState([]);
@@ -30,6 +31,11 @@ export default function AdviceScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
+      <View style={styles.header}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Feather name="arrow-left" size={24} color={colors.teal} />
+        </Pressable>
+      </View>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={typography.label}>ESPACE CONSEILS</Text>
         <Text style={[typography.h1, { marginTop: 2, marginBottom: spacing.xs }]}>
@@ -82,7 +88,17 @@ export default function AdviceScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
-  scroll: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+  },
+  scroll: { padding: spacing.lg, paddingTop: spacing.xs, paddingBottom: spacing.xxl },
   ficheCard: { marginBottom: spacing.sm },
   tag: {
     alignSelf: 'flex-start',

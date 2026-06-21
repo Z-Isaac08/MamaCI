@@ -4,6 +4,7 @@ import * as profileController from "../controllers/profileController.js";
 const router = express.Router();
 
 router.post("/", profileController.createProfile);
+router.post("/login", profileController.loginProfile);
 router.get("/:id", profileController.getProfile);
 router.patch("/:id/mode", profileController.updateMode);
 

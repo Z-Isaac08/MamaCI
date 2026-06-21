@@ -15,6 +15,7 @@ datasource db {
 model Profile {
   id             String   @id @default(uuid())
   cmu_id         String   @unique
+  nom            String?
   mode           String // "grossesse" or "nourrisson"
   date_reference DateTime
   created_at     DateTime @default(now())
@@ -26,6 +27,7 @@ model Profile {
 model CalendarEvent {
   id          String   @id @default(uuid())
   type        String // e.g. CPN_1, PEV_BCG
+  label       String?
   date_prevue DateTime
   statut      String   @default("a_venir") // "a_venir", "fait", "manque"
 
@@ -36,9 +38,10 @@ model CalendarEvent {
 }
 
 model Reminder {
-  id        String  @id @default(uuid())
-  canal     String  @default("app")
-  declenche Boolean @default(false)
+  id           String    @id @default(uuid())
+  canal        String    @default("app")
+  declenche    Boolean   @default(false)
+  triggered_at DateTime?
 
   // Relations
   event_id String

@@ -1,13 +1,18 @@
 // src/components/EmptyState.js
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '../theme';
 import Button from './Button';
 
-export default function EmptyState({ emoji = '🌿', title, message, actionLabel, onAction }) {
+export default function EmptyState({ icon, title, message, actionLabel, onAction }) {
   return (
     <View style={styles.wrap}>
-      <Text style={styles.emoji}>{emoji}</Text>
+      {icon && (
+        <View style={styles.iconBox}>
+          <Feather name={icon} size={32} color={colors.teal} />
+        </View>
+      )}
       <Text style={styles.title}>{title}</Text>
       {message ? <Text style={styles.message}>{message}</Text> : null}
       {actionLabel ? (

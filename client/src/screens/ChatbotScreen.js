@@ -7,10 +7,11 @@ import {
   StyleSheet,
   SafeAreaView,
   FlatList,
-  Pressable,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '../theme';
 import ChatBubble from '../components/ChatBubble';
 import { apiPost } from '../api/client';
@@ -110,7 +111,7 @@ export default function ChatbotScreen() {
             multiline
           />
           <Pressable onPress={() => send()} style={styles.sendButton}>
-            <Text style={styles.sendButtonText}>➤</Text>
+            <Feather name="send" size={18} color={colors.white} style={{ marginLeft: -2 }} />
           </Pressable>
         </View>
       </KeyboardAvoidingView>

@@ -1,6 +1,6 @@
 // src/screens/WelcomeScreen.js
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, Image, Pressable } from 'react-native';
 import { colors, typography, spacing, radius } from '../theme';
 import Button from '../components/Button';
 
@@ -35,6 +35,9 @@ export default function WelcomeScreen({ navigation }) {
 
       <View style={styles.footer}>
         <Button label="Commencer" onPress={() => navigation.navigate('Onboarding')} />
+        <Pressable onPress={() => navigation.navigate('Onboarding', { mode: 'login' })} style={styles.loginLink}>
+          <Text style={styles.loginLinkText}>J'ai déjà un compte</Text>
+        </Pressable>
         <Text style={styles.footnote}>
           Conçu pour accompagner les mamans et les bébés de Côte d'Ivoire, CPN et PEV inclus.
         </Text>
@@ -125,5 +128,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.md,
     lineHeight: 18,
+  },
+  loginLink: {
+    marginTop: spacing.md,
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  loginLinkText: {
+    color: 'rgba(255,255,255,0.9)',
+    fontWeight: '700',
+    fontSize: 15,
+    textDecorationLine: 'underline',
   },
 });

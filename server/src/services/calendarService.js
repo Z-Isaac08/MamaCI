@@ -13,6 +13,18 @@ const addWeeks = (date, weeks) => {
   return d;
 };
 
+// Labels lisibles pour l'affichage dans l'app mobile
+const EVENT_LABELS = {
+  CPN_1: "1ère consultation prénatale",
+  CPN_2: "2ème consultation prénatale",
+  CPN_3: "3ème consultation prénatale",
+  CPN_4: "4ème consultation prénatale",
+  BCG_Polio_0: "BCG + Polio 0 (naissance)",
+  Penta_1_Polio_1: "Penta 1 + Polio 1 (6 sem.)",
+  Penta_2_Polio_2: "Penta 2 + Polio 2 (10 sem.)",
+  Penta_3_Polio_3: "Penta 3 + Polio 3 (14 sem.)",
+};
+
 export const generateEventsForProfile = async (profileId, mode, dateReference) => {
   const eventsToCreate = [];
 
@@ -42,6 +54,7 @@ export const generateEventsForProfile = async (profileId, mode, dateReference) =
       data: {
         profile_id: profileId,
         type: event.type,
+        label: EVENT_LABELS[event.type] || event.type,
         date_prevue: event.date_prevue,
         statut: "a_venir",
         reminders: {
@@ -58,3 +71,4 @@ export const generateEventsForProfile = async (profileId, mode, dateReference) =
 
   return createdEvents;
 };
+

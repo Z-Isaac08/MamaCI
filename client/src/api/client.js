@@ -12,8 +12,8 @@ import axios from 'axios';
 import * as mock from './mockServer';
 
 // --- Bascule mock / backend réel -------------------------------------
-export const USE_MOCK = true;
-const BASE_URL = 'http://192.168.1.100:3000'; // à remplacer par l'IP locale du backend
+export const USE_MOCK = false;
+const BASE_URL = 'http://192.168.1.69:3000'; // à remplacer par l'IP locale du backend
 // -----------------------------------------------------------------------
 
 const http = axios.create({

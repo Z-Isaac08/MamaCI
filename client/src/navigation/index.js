@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Feather } from '@expo/vector-icons';
 
 import { colors, typography } from '../theme';
 import { useProfile } from '../context/ProfileContext';
@@ -14,20 +15,21 @@ import DashboardScreen from '../screens/DashboardScreen';
 import ChatbotScreen from '../screens/ChatbotScreen';
 import AdviceScreen from '../screens/AdviceScreen';
 import UssdScreen from '../screens/UssdScreen';
+import RemindersScreen from '../screens/RemindersScreen';
 
 const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TAB_ICONS = {
-  Tableau: '🏠',
-  Chatbot: '💬',
-  Conseils: '📖',
+  Tableau: 'home',
+  Chatbot: 'message-circle',
+  Conseils: 'book-open',
 };
 
-function TabIcon({ emoji, focused }) {
+function TabIcon({ name, focused }) {
   return (
     <View style={[styles.tabIconWrap, focused && styles.tabIconWrapFocused]}>
-      <Text style={{ fontSize: 18, opacity: focused ? 1 : 0.5 }}>{emoji}</Text>
+      <Feather name={name} size={22} color={focused ? colors.teal : colors.greyLight} />
     </View>
   );
 }
@@ -41,7 +43,7 @@ function MainTabs() {
         tabBarInactiveTintColor: colors.greyLight,
         tabBarStyle: styles.tabBar,
         tabBarLabelStyle: styles.tabBarLabel,
-        tabBarIcon: ({ focused }) => <TabIcon emoji={TAB_ICONS[route.name]} focused={focused} />,
+        tabBarIcon: ({ focused }) => <TabIcon name={TAB_ICONS[route.name]} focused={focused} />,
       })}
     >
       <Tab.Screen name="Tableau" component={DashboardScreen} options={{ title: 'Accueil' }} />
@@ -77,6 +79,7 @@ export default function RootNavigation() {
           component={UssdScreen}
           options={{ headerShown: true, title: 'Mode sans réseau', presentation: 'modal' }}
         />
+        <RootStack.Screen name="Reminders" component={RemindersScreen} />
       </RootStack.Navigator>
     </NavigationContainer>
   );

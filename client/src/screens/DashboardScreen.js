@@ -10,6 +10,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { colors, typography, spacing, radius } from '../theme';
 import Card from '../components/Card';
 import Button from '../components/Button';
@@ -20,7 +21,10 @@ import { useProfile } from '../context/ProfileContext';
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}-${month}-${year}`;
 }
 
 function daysUntil(iso) {
@@ -98,7 +102,7 @@ export default function DashboardScreen({ navigation }) {
             <Text style={[typography.h1, { marginTop: 2 }]}>Bonjour 👋</Text>
           </View>
           <View style={styles.modeChip}>
-            <Text style={styles.modeChipText}>{mode === 'grossesse' ? '🤰' : '👶'}</Text>
+            <Feather name={mode === 'grossesse' ? 'user' : 'smile'} size={24} color={colors.tealDark} />
           </View>
         </View>
 
@@ -133,7 +137,7 @@ export default function DashboardScreen({ navigation }) {
             </>
           ) : (
             <EmptyState
-              emoji="🗓️"
+              icon="calendar"
               title="Aucune échéance à venir"
               message="Ton calendrier est à jour, rien à signaler pour le moment."
             />
@@ -144,17 +148,22 @@ export default function DashboardScreen({ navigation }) {
         <Text style={[typography.h3, styles.sectionTitle]}>Accès rapide</Text>
         <View style={styles.quickRow}>
           <QuickAction
-            emoji="💬"
+            icon="message-circle"
             label="Chatbot"
             onPress={() => navigation.navigate('Chatbot')}
           />
           <QuickAction
-            emoji="📖"
+            icon="book-open"
             label="Conseils"
             onPress={() => navigation.navigate('Conseils')}
           />
           <QuickAction
-            emoji="📟"
+            icon="bell"
+            label="Rappels"
+            onPress={() => navigation.navigate('Reminders')}
+          />
+          <QuickAction
+            icon="smartphone"
             label="Sans réseau"
             onPress={() => navigation.navigate('USSD')}
           />
@@ -168,7 +177,7 @@ export default function DashboardScreen({ navigation }) {
         {calendar.length === 0 ? (
           <Card>
             <EmptyState
-              emoji="📋"
+              icon="list"
               title="Calendrier non généré"
               message="Reviens dans un instant, ton calendrier est en cours de préparation."
             />
@@ -197,11 +206,11 @@ export default function DashboardScreen({ navigation }) {
   );
 }
 
-function QuickAction({ emoji, label, onPress }) {
+function QuickAction({ icon, label, onPress }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.quickAction, pressed && { opacity: 0.8 }]}>
+    <Pressable onPress={onPress} style={styles.quickAction}>
       <View style={styles.quickIconWrap}>
-        <Text style={styles.quickEmoji}>{emoji}</Text>
+        <Feather name={icon} size={24} color={colors.teal} />
       </View>
       <Text style={styles.quickLabel}>{label}</Text>
     </Pressable>

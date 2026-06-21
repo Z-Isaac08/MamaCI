@@ -16,15 +16,27 @@ import Button from '../components/Button';
 import { useProfile } from '../context/ProfileContext';
 
 const CMU_REGEX = /^[A-Za-z0-9-]{6,}$/;
+const DATE_REGEX_DDMMYYYY = /^(\d{2})-(\d{2})-(\d{4})$/;
 
-export default function OnboardingScreen({ navigation }) {
-  const { createProfile } = useProfile();
+// Convertit JJ-MM-AAAA en AAAA-MM-JJ (format ISO) pour le backend
+function toISODate(ddmmyyyy) {
+  const m = ddmmyyyy.match(DATE_REGEX_DDMMYYYY);
+  if (!m) return null;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
 
+export default function OnboardingScreen({ navigation, route }) {
+  const { createProfile, loginProfile } = useProfile();
+
+  const isLogin = route.params?.mode === 'login';
+
+  const [nom, setNom] = useState('');
   const [cmuId, setCmuId] = useState('');
   const [statut, setStatut] = useState('grossesse'); // 'grossesse' | 'nourrisson'
-  const [date, setDate] = useState(''); // format simple AAAA-MM-JJ pour la démo
+  const [date, setDate] = useState(''); // format JJ-MM-AAAA
   const [cmuError, setCmuError] = useState('');
   const [dateError, setDateError] = useState('');
+  const [nomError, setNomError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -32,17 +44,24 @@ export default function OnboardingScreen({ navigation }) {
     let valid = true;
     setCmuError('');
     setDateError('');
+    setNomError('');
     setSubmitError('');
 
-    // Validation locale du format CMU avant tout appel réseau — doc Frontend §3.2
     if (!CMU_REGEX.test(cmuId.trim())) {
       setCmuError('Identifiant CMU invalide : au moins 6 caractères, lettres et chiffres.');
       valid = false;
     }
 
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date.trim())) {
-      setDateError('Utilise le format AAAA-MM-JJ, par exemple 2026-09-15.');
-      valid = false;
+    if (!isLogin) {
+      if (!nom.trim()) {
+        setNomError('Merci de saisir ton nom.');
+        valid = false;
+      }
+
+      if (!DATE_REGEX_DDMMYYYY.test(date.trim())) {
+        setDateError('Utilise le format JJ-MM-AAAA, par exemple 15-09-2026.');
+        valid = false;
+      }
     }
 
     return valid;
@@ -51,18 +70,33 @@ export default function OnboardingScreen({ navigation }) {
   async function handleSubmit() {
     if (!validate()) return;
     setLoading(true);
-    const res = await createProfile({
-      cmu_id: cmuId.trim(),
-      statut,
-      date_reference: date.trim(),
-    });
-    setLoading(false);
 
-    if (!res.success) {
-      setSubmitError(res.error?.message || "Une erreur est survenue. Réessaie dans un instant.");
-      return;
+    if (isLogin) {
+      // Reconnexion par CMU
+      const res = await loginProfile(cmuId.trim());
+      setLoading(false);
+      if (!res.success) {
+        setSubmitError(res.error?.message || "Aucun profil trouvé avec cet identifiant.");
+        return;
+      }
+      navigation.replace('MainTabs');
+    } else {
+      // Création de profil
+      const isoDate = toISODate(date.trim());
+      const res = await createProfile({
+        cmu_id: cmuId.trim(),
+        nom: nom.trim(),
+        statut,
+        date_reference: isoDate,
+      });
+      setLoading(false);
+
+      if (!res.success) {
+        setSubmitError(res.error?.message || "Une erreur est survenue. Réessaie dans un instant.");
+        return;
+      }
+      navigation.replace('MainTabs');
     }
-    navigation.replace('MainTabs');
   }
 
   return (
@@ -73,9 +107,13 @@ export default function OnboardingScreen({ navigation }) {
       >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Text style={typography.label}>Bienvenue sur MamaCi</Text>
-          <Text style={[typography.h1, { marginTop: 4 }]}>Créons ton profil</Text>
+          <Text style={[typography.h1, { marginTop: 4 }]}>
+            {isLogin ? 'Retrouve ton profil' : 'Créons ton profil'}
+          </Text>
           <Text style={[typography.bodySoft, { marginTop: spacing.xs, marginBottom: spacing.lg }]}>
-            Quelques informations suffisent pour démarrer ton suivi personnalisé.
+            {isLogin
+              ? 'Entre ton identifiant CMU pour retrouver ton suivi.'
+              : 'Quelques informations suffisent pour démarrer ton suivi personnalisé.'}
           </Text>
 
           <TextField
@@ -88,29 +126,42 @@ export default function OnboardingScreen({ navigation }) {
             autoCapitalize="characters"
           />
 
-          <Text style={[typography.label, { marginBottom: spacing.sm }]}>Ta situation</Text>
-          <View style={styles.statutRow}>
-            <StatutOption
-              label="Je suis enceinte"
-              selected={statut === 'grossesse'}
-              onPress={() => setStatut('grossesse')}
-            />
-            <StatutOption
-              label="J'ai déjà accouché"
-              selected={statut === 'nourrisson'}
-              onPress={() => setStatut('nourrisson')}
-            />
-          </View>
+          {!isLogin && (
+            <>
+              <TextField
+                label="Ton nom"
+                placeholder="ex. Awa Konaté"
+                value={nom}
+                onChangeText={setNom}
+                error={nomError}
+                autoCapitalize="words"
+              />
 
-          <TextField
-            label={statut === 'grossesse' ? 'Date de terme prévue' : 'Date de naissance du bébé'}
-            placeholder="2026-09-15"
-            value={date}
-            onChangeText={setDate}
-            error={dateError}
-            helper="Format AAAA-MM-JJ"
-            keyboardType="numbers-and-punctuation"
-          />
+              <Text style={[typography.label, { marginBottom: spacing.sm }]}>Ta situation</Text>
+              <View style={styles.statutRow}>
+                <StatutOption
+                  label="Je suis enceinte"
+                  selected={statut === 'grossesse'}
+                  onPress={() => setStatut('grossesse')}
+                />
+                <StatutOption
+                  label="J'ai déjà accouché"
+                  selected={statut === 'nourrisson'}
+                  onPress={() => setStatut('nourrisson')}
+                />
+              </View>
+
+              <TextField
+                label={statut === 'grossesse' ? 'Date de terme prévue' : 'Date de naissance du bébé'}
+                placeholder="15-09-2026"
+                value={date}
+                onChangeText={setDate}
+                error={dateError}
+                helper="Format JJ-MM-AAAA"
+                keyboardType="numbers-and-punctuation"
+              />
+            </>
+          )}
 
           {submitError ? (
             <View style={styles.errorBox}>
@@ -119,7 +170,11 @@ export default function OnboardingScreen({ navigation }) {
           ) : null}
 
           <View style={{ marginTop: spacing.md }}>
-            <Button label="Créer mon profil" onPress={handleSubmit} loading={loading} />
+            <Button
+              label={isLogin ? 'Me connecter' : 'Créer mon profil'}
+              onPress={handleSubmit}
+              loading={loading}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

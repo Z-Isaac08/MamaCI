@@ -30,6 +30,7 @@ export function ProfileProvider({ children }) {
           if (res.success) {
             setProfile(res.data);
             await loadCalendar(storedId);
+            await loadReminders(storedId);
           } else {
             await AsyncStorage.removeItem(STORAGE_KEY);
           }
@@ -59,8 +60,17 @@ export function ProfileProvider({ children }) {
     return null;
   }, []);
 
-  const createProfile = useCallback(async ({ cmu_id, statut, date_reference }) => {
-    const res = await apiPost('/api/profiles', { cmu_id, statut, date_reference });
+  const loadReminders = useCallback(async (profileId) => {
+    const res = await apiGet(`/api/profiles/${profileId}/reminders`);
+    if (res.success) {
+      setReminders(res.data);
+      return res.data;
+    }
+    return [];
+  }, []);
+
+  const createProfile = useCallback(async ({ cmu_id, nom, statut, date_reference }) => {
+    const res = await apiPost('/api/profiles', { cmu_id, nom, mode: statut, date_reference });
     if (!res.success) return res;
 
     setProfile(res.data);
@@ -73,6 +83,17 @@ export function ProfileProvider({ children }) {
     }
     return res;
   }, []);
+
+  const loginProfile = useCallback(async (cmu_id) => {
+    const res = await apiPost('/api/profiles/login', { cmu_id });
+    if (!res.success) return res;
+
+    setProfile(res.data);
+    await AsyncStorage.setItem(STORAGE_KEY, res.data.id);
+    await loadCalendar(res.data.id);
+    await loadReminders(res.data.id);
+    return res;
+  }, [loadCalendar, loadReminders]);
 
   const switchToNourrisson = useCallback(
     async (dateNaissance) => {
@@ -120,10 +141,12 @@ export function ProfileProvider({ children }) {
     bootstrapping,
     calendarFromCache,
     createProfile,
+    loginProfile,
     switchToNourrisson,
     triggerReminder,
     updateEventStatus,
     refreshCalendar: () => profile && loadCalendar(profile.id),
+    refreshReminders: () => profile && loadReminders(profile.id),
     resetProfile,
   };
 
