@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, Pressable, Modal } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
 import { colors, typography, spacing, radius } from '../theme';
 import Card from '../components/Card';
 import { useProfile } from '../context/ProfileContext';
@@ -21,6 +22,25 @@ export default function AdviceScreen({ navigation }) {
   const mode = profile?.mode || 'grossesse';
   const [fiches, setFiches] = useState([]);
   const [selected, setSelected] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const stopSpeech = () => {
+    Speech.stop();
+    setIsPlaying(false);
+  };
+
+  const handlePlay = (title, body) => {
+    if (isPlaying) {
+      stopSpeech();
+      return;
+    }
+    setIsPlaying(true);
+    Speech.speak(`${title}. ${body}`, {
+      language: 'fr',
+      onDone: () => setIsPlaying(false),
+      onStopped: () => setIsPlaying(false),
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -62,20 +82,29 @@ export default function AdviceScreen({ navigation }) {
         ))}
       </ScrollView>
 
-      <Modal visible={!!selected} animationType="slide" onRequestClose={() => setSelected(null)}>
+      <Modal visible={!!selected} animationType="slide" onRequestClose={() => { stopSpeech(); setSelected(null); }}>
         {selected && (
           <SafeAreaView style={styles.modalSafe}>
             <ScrollView contentContainerStyle={styles.modalScroll}>
-              <View style={[styles.tag, { backgroundColor: (TAG_COLORS[selected.tag] || colors.teal) + '1A' }]}>
-                <Text style={[styles.tagText, { color: TAG_COLORS[selected.tag] || colors.teal }]}>
-                  {selected.tag}
-                </Text>
+              <View style={styles.modalHeaderRow}>
+                <View style={[styles.tag, { backgroundColor: (TAG_COLORS[selected.tag] || colors.teal) + '1A' }]}>
+                  <Text style={[styles.tagText, { color: TAG_COLORS[selected.tag] || colors.teal }]}>
+                    {selected.tag}
+                  </Text>
+                </View>
+                <Pressable
+                  style={styles.audioButton}
+                  onPress={() => handlePlay(selected.title, selected.body)}
+                >
+                  <Feather name={isPlaying ? "square" : "volume-2"} size={22} color={colors.teal} />
+                  <Text style={styles.audioText}>{isPlaying ? "Arrêter" : "Écouter"}</Text>
+                </Pressable>
               </View>
               <Text style={[typography.h1, { marginTop: spacing.sm }]}>{selected.title}</Text>
               <Text style={[typography.body, { marginTop: spacing.md }]}>{selected.body}</Text>
             </ScrollView>
             <View style={styles.modalFooter}>
-              <Pressable onPress={() => setSelected(null)} style={styles.closeButton}>
+              <Pressable onPress={() => { stopSpeech(); setSelected(null); }} style={styles.closeButton}>
                 <Text style={styles.closeButtonText}>Fermer</Text>
               </Pressable>
             </View>
@@ -107,6 +136,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   tagText: { fontSize: 11, fontWeight: '800', letterSpacing: 0.4, textTransform: 'uppercase' },
+  modalHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  audioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.tealLight,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: radius.pill,
+    gap: 6,
+  },
+  audioText: { color: colors.tealDark, fontWeight: '700', fontSize: 13 },
   modalSafe: { flex: 1, backgroundColor: colors.paper },
   modalScroll: { padding: spacing.lg, paddingBottom: spacing.xl },
   modalFooter: { padding: spacing.lg },

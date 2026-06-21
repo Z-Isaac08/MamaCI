@@ -1,5 +1,5 @@
 // src/screens/ChatbotScreen.js
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -10,66 +10,79 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-} from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { colors, typography, spacing, radius } from '../theme';
-import ChatBubble from '../components/ChatBubble';
-import { apiPost } from '../api/client';
+} from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { colors, typography, spacing, radius } from "../theme";
+import ChatBubble from "../components/ChatBubble";
+import { apiPost } from "../api/client";
 
-const SUGGESTIONS = ['Nausées', 'Vaccin', 'Allaitement', 'Mes RDV'];
+const SUGGESTIONS = ["Nausées", "Vaccin", "Allaitement", "Mes RDV"];
 
 const INTRO = {
-  id: 'intro',
-  from: 'bot',
+  id: "intro",
+  from: "bot",
   text:
-    "Bonjour, je suis l'assistant MamaCi. Pose-moi une question sur ta grossesse ou ton bébé — " +
-    "je t'oriente vers un centre de santé si quelque chose semble sérieux.",
+    "Bonjour, je suis l'assistant MamaCi. Pose-moi une question sur ta grossesse ou ton bébé. " +
+    "Je t'orienterai vers un centre de santé si quelque chose semble sérieux.",
 };
 
 export default function ChatbotScreen() {
   const [messages, setMessages] = useState([INTRO]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [recording, setRecording] = useState(false);
   const listRef = useRef(null);
+
+  const simulateSpeech = () => {
+    if (recording) return;
+    setRecording(true);
+    setInput("Je t'écoute...");
+    setTimeout(() => {
+      setRecording(false);
+      setInput("j'ai de la fievre depuis ce matin");
+    }, 2000);
+  };
 
   async function send(text) {
     const content = (text ?? input).trim();
     if (!content || sending) return;
 
-    const userMsg = { id: 'u' + Date.now(), from: 'user', text: content };
+    const userMsg = { id: "u" + Date.now(), from: "user", text: content };
     setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+    setInput("");
     setSending(true);
 
-    const res = await apiPost('/api/chatbot/message', { message: content });
+    const res = await apiPost("/api/chatbot/message", { message: content });
     setSending(false);
 
     if (res.success) {
       const botMsg = {
-        id: 'b' + Date.now(),
-        from: 'bot',
+        id: "b" + Date.now(),
+        from: "bot",
         text: res.data.reply,
-        variant: res.data.type === 'alert' ? 'alert' : 'normal',
+        variant: res.data.type === "alert" ? "alert" : "normal",
       };
       setMessages((prev) => [...prev, botMsg]);
     } else {
       setMessages((prev) => [
         ...prev,
         {
-          id: 'e' + Date.now(),
-          from: 'bot',
+          id: "e" + Date.now(),
+          from: "bot",
           text: "Je n'arrive pas à répondre pour le moment. Réessaie dans un instant, ou consulte l'espace conseils.",
         },
       ]);
     }
 
-    requestAnimationFrame(() => listRef.current?.scrollToEnd({ animated: true }));
+    requestAnimationFrame(() =>
+      listRef.current?.scrollToEnd({ animated: true }),
+    );
   }
 
   return (
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={90}
         style={{ flex: 1 }}
       >
@@ -82,9 +95,17 @@ export default function ChatbotScreen() {
           ref={listRef}
           data={messages}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ChatBubble text={item.text} from={item.from} variant={item.variant} />}
+          renderItem={({ item }) => (
+            <ChatBubble
+              text={item.text}
+              from={item.from}
+              variant={item.variant}
+            />
+          )}
           contentContainerStyle={{ paddingVertical: spacing.md }}
-          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
+          onContentSizeChange={() =>
+            listRef.current?.scrollToEnd({ animated: true })
+          }
         />
 
         {sending && (
@@ -95,13 +116,20 @@ export default function ChatbotScreen() {
 
         <View style={styles.suggestionsRow}>
           {SUGGESTIONS.map((s) => (
-            <Pressable key={s} onPress={() => send(s)} style={styles.suggestionChip}>
+            <Pressable
+              key={s}
+              onPress={() => send(s)}
+              style={styles.suggestionChip}
+            >
               <Text style={styles.suggestionText}>{s}</Text>
             </Pressable>
           ))}
         </View>
 
         <View style={styles.inputRow}>
+          <Pressable onPress={simulateSpeech} style={[styles.micButton, recording && styles.micRecording]}>
+            <Feather name="mic" size={20} color={recording ? colors.white : colors.teal} />
+          </Pressable>
           <TextInput
             value={input}
             onChangeText={setInput}
@@ -109,9 +137,15 @@ export default function ChatbotScreen() {
             placeholderTextColor={colors.greyLight}
             style={styles.input}
             multiline
+            editable={!recording}
           />
           <Pressable onPress={() => send()} style={styles.sendButton}>
-            <Feather name="send" size={18} color={colors.white} style={{ marginLeft: -2 }} />
+            <Feather
+              name="send"
+              size={18}
+              color={colors.white}
+              style={{ marginLeft: -2 }}
+            />
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -121,12 +155,16 @@ export default function ChatbotScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.paper },
-  header: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.sm },
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+  },
   typingRow: { paddingHorizontal: spacing.lg, paddingBottom: 4 },
-  typingText: { ...typography.caption, fontStyle: 'italic' },
+  typingText: { ...typography.caption, fontStyle: "italic" },
   suggestionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
@@ -139,10 +177,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     backgroundColor: colors.white,
   },
-  suggestionText: { fontSize: 12.5, fontWeight: '600', color: colors.tealDark },
+  suggestionText: { fontSize: 12.5, fontWeight: "600", color: colors.tealDark },
   inputRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
+    flexDirection: "row",
+    alignItems: "flex-end",
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.md,
     paddingTop: spacing.xs,
@@ -160,13 +198,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
     maxHeight: 100,
   },
+  micButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 46,
+    backgroundColor: colors.tealLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  micRecording: {
+    backgroundColor: colors.coral,
+  },
   sendButton: {
     width: 46,
     height: 46,
     borderRadius: 46,
     backgroundColor: colors.teal,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   sendButtonText: { color: colors.white, fontSize: 18, marginLeft: 2 },
 });

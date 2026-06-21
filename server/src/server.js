@@ -4,6 +4,7 @@ import profileRoutes from "./routes/profileRoutes.js";
 import eventRoutes from "./routes/eventRoutes.js";
 import adviceRoutes from "./routes/adviceRoutes.js";
 import chatbotRoutes from "./routes/chatbotRoutes.js";
+import ussdRoutes from "./routes/ussdRoutes.js";
 import { responseFormatter, globalErrorHandler } from "./middlewares/responseHandler.js";
 
 const app = express();
@@ -18,6 +19,7 @@ app.use("/api/profiles", profileRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/advice", adviceRoutes);
 app.use("/api/chatbot", chatbotRoutes);
+app.use("/api/ussd", ussdRoutes);
 
 // Health check
 app.get("/health", (req, res) => {
