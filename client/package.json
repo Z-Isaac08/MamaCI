@@ -15,7 +15,7 @@
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
     "axios": "^1.7.2",
-    "babel-preset-expo": "^56.0.15",
+    "babel-preset-expo": "~54.0.10",
     "expo": "~54.0.35",
     "expo-notifications": "~0.32.17",
     "expo-speech": "~14.0.8",
@@ -28,9 +28,7 @@
     "react-native-web": "^0.21.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.24.0",
-    "@babel/plugin-transform-private-methods": "^7.29.7",
-    "@babel/plugin-transform-private-property-in-object": "^7.29.7"
+    "@babel/core": "^7.24.0"
   },
   "private": true
 }

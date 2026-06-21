@@ -11,7 +11,8 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "ci.mamaci.app"
+      "bundleIdentifier": "ci.mamaci.app",
+      "jsEngine": "hermes"
     },
     "android": {
       "package": "ci.mamaci.app",
