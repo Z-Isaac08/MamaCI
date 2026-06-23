@@ -11,9 +11,11 @@ import {
   StyleSheet,
   Text,
   View,
+  Platform,
 } from "react-native";
 import BirthDateModal from "../components/BirthDateModal";
 import Button from "../components/Button";
+import LogoutModal from "../components/LogoutModal";
 import Card from "../components/Card";
 import EmptyState from "../components/EmptyState";
 import StatusStamp from "../components/StatusStamp";
@@ -44,11 +46,13 @@ export default function DashboardScreen({ navigation }) {
     refreshCalendar,
     triggerReminder,
     switchToNourrisson,
+    resetProfile,
   } = useProfile();
 
   const [refreshing, setRefreshing] = useState(false);
   const [reminderSentFor, setReminderSentFor] = useState(null);
   const [birthModalVisible, setBirthModalVisible] = useState(false);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
   useEffect(() => {
     refreshCalendar();
@@ -90,6 +94,19 @@ export default function DashboardScreen({ navigation }) {
     return res;
   }
 
+  function handleLogout() {
+    setLogoutModalVisible(true);
+  }
+
+  async function handleConfirmLogout() {
+    setLogoutModalVisible(false);
+    await resetProfile();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Onboarding" }],
+    });
+  }
+
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView
@@ -124,12 +141,17 @@ export default function DashboardScreen({ navigation }) {
               Bienvenue {prenom}
             </Text>
           </View>
-          <View style={styles.modeChip}>
-            <Feather
-              name={mode === "grossesse" ? "user" : "smile"}
-              size={24}
-              color={colors.tealDark}
-            />
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={styles.modeChip}>
+              <Feather
+                name={mode === "grossesse" ? "user" : "smile"}
+                size={24}
+                color={colors.tealDark}
+              />
+            </View>
+            <Pressable onPress={handleLogout} style={{ marginLeft: 12, padding: 8 }}>
+              <Feather name="log-out" size={24} color={colors.danger} />
+            </Pressable>
           </View>
         </View>
 
@@ -243,6 +265,11 @@ export default function DashboardScreen({ navigation }) {
           visible={birthModalVisible}
           onClose={() => setBirthModalVisible(false)}
           onConfirm={handleConfirmBirth}
+        />
+        <LogoutModal
+          visible={logoutModalVisible}
+          onClose={() => setLogoutModalVisible(false)}
+          onConfirm={handleConfirmLogout}
         />
       </ScrollView>
     </SafeAreaView>

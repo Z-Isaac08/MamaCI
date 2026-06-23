@@ -28,7 +28,7 @@ function toISODate(ddmmyyyy) {
 export default function OnboardingScreen({ navigation, route }) {
   const { createProfile, loginProfile } = useProfile();
 
-  const isLogin = route.params?.mode === 'login';
+  const [isLogin, setIsLogin] = useState(route.params?.mode === 'login');
 
   const [nom, setNom] = useState('');
   const [cmuId, setCmuId] = useState('');
@@ -176,6 +176,21 @@ export default function OnboardingScreen({ navigation, route }) {
               loading={loading}
             />
           </View>
+
+          <Pressable
+            style={styles.switchModeLink}
+            onPress={() => {
+              setIsLogin(!isLogin);
+              setSubmitError('');
+              setCmuError('');
+              setDateError('');
+              setNomError('');
+            }}
+          >
+            <Text style={styles.switchModeText}>
+              {isLogin ? "Je n'ai pas de profil ? Créer un profil" : "J'ai déjà un profil ? Me connecter"}
+            </Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -241,4 +256,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   errorBoxText: { color: colors.danger, fontSize: 13.5, fontWeight: '600' },
+  switchModeLink: {
+    marginTop: spacing.lg,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+  },
+  switchModeText: {
+    color: colors.teal,
+    fontWeight: '700',
+    fontSize: 14.5,
+  },
 });
