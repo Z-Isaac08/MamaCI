@@ -34,6 +34,15 @@ export const colors = {
   dangerBg: '#FBEAE8',
   white: '#FFFFFF',
   overlay: 'rgba(15, 33, 31, 0.55)',
+
+  // --- Palette Nourrisson (lavande / violet doux) ---
+  lavender: '#7C3AED',
+  lavenderDark: '#6D28D9',
+  lavenderDeep: '#4C1D95',
+  lavenderTint: '#F5F3FF',    // fond léger violet
+  lavenderLine: 'rgba(124, 58, 237, 0.18)',
+  babyPaper: '#FEFBFF',       // fond général nourrisson — blanc rosé
+  babyAccent: '#EC4899',      // accent rose pour les compteurs
 };
 
 export const typography = {

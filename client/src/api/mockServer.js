@@ -111,6 +111,10 @@ export async function handlePost(path, body) {
   if ((m = path.match(/^\/api\/profiles\/([^/]+)\/calendar\/generate$/))) {
     const profile = profiles[m[1]];
     if (!profile) return err('NOT_FOUND', 'Profil introuvable.');
+    // Supprimer les anciens events pour éviter les doublons
+    Object.keys(events).forEach((id) => {
+      if (events[id].profile_id === profile.id) delete events[id];
+    });
     const created = generateEventsForProfile(profile);
     return ok(created);
   }

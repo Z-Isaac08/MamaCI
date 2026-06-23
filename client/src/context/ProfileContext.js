@@ -97,14 +97,30 @@ export function ProfileProvider({ children }) {
 
   const switchToNourrisson = useCallback(
     async (dateNaissance) => {
-      if (!profile) return { success: false };
-      const res = await apiPatch(`/api/profiles/${profile.id}/mode`, {
+      if (!profile) return { success: false, error: { code: 'NO_PROFILE', message: 'Aucun profil actif.' } };
+      const profileId = profile.id;
+
+      // 1. PATCH le mode → nourrisson
+      const res = await apiPatch(`/api/profiles/${profileId}/mode`, {
         date_naissance: dateNaissance,
       });
-      if (res.success) {
-        setProfile(res.data);
-        await loadCalendar(profile.id);
+      if (!res.success) return res;
+
+      // Mettre à jour le profil local avec la réponse du backend
+      const updatedProfile = res.data;
+      setProfile(updatedProfile);
+
+      // 2. Regénérer le calendrier PEV (même pattern que createProfile)
+      const genRes = await apiPost(`/api/profiles/${updatedProfile.id}/calendar/generate`, {});
+      if (genRes.success) {
+        setCalendar(genRes.data);
+        setCalendarFromCache(false);
+        await AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ data: genRes.data, at: Date.now() }));
+      } else {
+        // Fallback: essayer de charger le calendrier déjà regénéré côté serveur
+        await loadCalendar(updatedProfile.id);
       }
+
       return res;
     },
     [profile, loadCalendar]

@@ -1,23 +1,24 @@
 // src/screens/DashboardScreen.js
-import React, { useEffect, useState, useCallback } from "react";
+import { Feather } from "@expo/vector-icons";
+import { useCallback, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  ScrollView,
-  Pressable,
-  RefreshControl,
   Alert,
   Image,
+  Pressable,
+  RefreshControl,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { colors, typography, spacing, radius } from "../theme";
-import Card from "../components/Card";
+import BirthDateModal from "../components/BirthDateModal";
 import Button from "../components/Button";
-import StatusStamp from "../components/StatusStamp";
+import Card from "../components/Card";
 import EmptyState from "../components/EmptyState";
+import StatusStamp from "../components/StatusStamp";
 import { useProfile } from "../context/ProfileContext";
+import { colors, radius, spacing, typography } from "../theme";
 
 function formatDate(iso) {
   if (!iso) return "";
@@ -47,6 +48,7 @@ export default function DashboardScreen({ navigation }) {
 
   const [refreshing, setRefreshing] = useState(false);
   const [reminderSentFor, setReminderSentFor] = useState(null);
+  const [birthModalVisible, setBirthModalVisible] = useState(false);
 
   useEffect(() => {
     refreshCalendar();
@@ -77,20 +79,15 @@ export default function DashboardScreen({ navigation }) {
   }
 
   function handleSwitchMode() {
-    Alert.alert(
-      "Confirmer la naissance",
-      "Veux-tu basculer ton profil en Mode Nourrisson ? Le calendrier sera mis à jour avec le PEV.",
-      [
-        { text: "Annuler", style: "cancel" },
-        {
-          text: "Confirmer",
-          onPress: async () => {
-            const today = new Date().toISOString().split("T")[0];
-            await switchToNourrisson(today);
-          },
-        },
-      ],
-    );
+    setBirthModalVisible(true);
+  }
+
+  async function handleConfirmBirth(isoDate) {
+    const res = await switchToNourrisson(isoDate);
+    if (res && res.success) {
+      setBirthModalVisible(false);
+    }
+    return res;
   }
 
   return (
@@ -107,17 +104,25 @@ export default function DashboardScreen({ navigation }) {
       >
         <View style={styles.headerRow}>
           <View>
-            <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 4 }}>
-              <Image 
-                source={require('../../assets/logo_mama.png')} 
-                style={{ width: 20, height: 20, marginRight: 6 }} 
-                resizeMode="contain" 
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                marginBottom: 4,
+              }}
+            >
+              <Image
+                source={require("../../assets/logo_mama.png")}
+                style={{ width: 20, height: 20, marginRight: 6 }}
+                resizeMode="contain"
               />
               <Text style={typography.label}>
                 {mode === "grossesse" ? "Mode Grossesse" : "Mode Nourrisson"}
               </Text>
             </View>
-            <Text style={[typography.h1, { marginTop: 2 }]}>Bienvenue {prenom}</Text>
+            <Text style={[typography.h1, { marginTop: 2 }]}>
+              Bienvenue {prenom}
+            </Text>
           </View>
           <View style={styles.modeChip}>
             <Feather
@@ -233,6 +238,12 @@ export default function DashboardScreen({ navigation }) {
             </Text>
           </Pressable>
         )}
+
+        <BirthDateModal
+          visible={birthModalVisible}
+          onClose={() => setBirthModalVisible(false)}
+          onConfirm={handleConfirmBirth}
+        />
       </ScrollView>
     </SafeAreaView>
   );
