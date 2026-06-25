@@ -218,6 +218,11 @@ export default function DashboardScreen({ navigation }) {
             onPress={() => navigation.navigate("Reminders")}
           />
           <QuickAction
+            icon="map-pin"
+            label="Centres"
+            onPress={() => navigation.navigate("HealthCenters")}
+          />
+          <QuickAction
             icon="smartphone"
             label="Sans réseau"
             onPress={() => navigation.navigate("USSD")}
@@ -342,8 +347,8 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   sectionTitle: { marginTop: spacing.lg, marginBottom: spacing.sm },
-  quickRow: { flexDirection: "row", gap: spacing.sm },
-  quickAction: { flex: 1, alignItems: "center" },
+  quickRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  quickAction: { flexBasis: "30%", flexGrow: 1, alignItems: "center" },
   quickIconWrap: {
     width: 56,
     height: 56,

@@ -8,12 +8,12 @@
 // Aucun autre fichier de l'app n'a besoin d'être modifié : tous les écrans
 // passent par apiGet/apiPost/apiPatch ci-dessous.
 
-import axios from "axios";
-import * as mock from "./mockServer";
+import axios from 'axios';
+import * as mock from './mockServer';
 
 // --- Bascule mock / backend réel -------------------------------------
 export const USE_MOCK = false;
-const BASE_URL = "http://192.168.1.45:3000"; // à remplacer par l'IP locale du backend
+const BASE_URL = 'http://192.168.1.6:3000'; // à remplacer par l'IP locale du backend
 // -----------------------------------------------------------------------
 
 const http = axios.create({
@@ -25,15 +25,15 @@ function normalizeError(error) {
   if (error.response?.data?.error) {
     return error.response.data.error;
   }
-  if (error.code === "ECONNABORTED") {
+  if (error.code === 'ECONNABORTED') {
     return {
-      code: "TIMEOUT",
-      message: "La connexion met trop de temps à répondre.",
+      code: 'TIMEOUT',
+      message: 'La connexion met trop de temps à répondre.',
     };
   }
   return {
-    code: "NETWORK_ERROR",
-    message: "Impossible de joindre le serveur pour le moment.",
+    code: 'NETWORK_ERROR',
+    message: 'Impossible de joindre le serveur pour le moment.',
   };
 }
 

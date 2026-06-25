@@ -16,6 +16,7 @@ import ChatbotScreen from '../screens/ChatbotScreen';
 import AdviceScreen from '../screens/AdviceScreen';
 import UssdScreen from '../screens/UssdScreen';
 import RemindersScreen from '../screens/RemindersScreen';
+import HealthCentersScreen from '../screens/HealthCentersScreen';
 
 const RootStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -80,6 +81,7 @@ export default function RootNavigation() {
           options={{ headerShown: true, title: 'Mode sans réseau', presentation: 'modal' }}
         />
         <RootStack.Screen name="Reminders" component={RemindersScreen} />
+        <RootStack.Screen name="HealthCenters" component={HealthCentersScreen} />
       </RootStack.Navigator>
     </NavigationContainer>
   );
